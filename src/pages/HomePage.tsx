@@ -6,14 +6,12 @@ import {
   Tooltip,
   Legend,
   type ChartOptions,
-  type ChartData
 } from 'chart.js';
 
 
 import { Bar } from "react-chartjs-2";
-import type { Party } from '../types';
-import { useState } from 'react';
 import { PartyItem } from '../components/PartyItem';
+import { useParties } from '../hooks/useParties';
 
 
 ChartJS.register(
@@ -25,24 +23,21 @@ ChartJS.register(
   Legend
 );
 
-const PARTY_COLORS = [
-  { bg: 'rgba(220, 53, 69, 0.2)', border: 'rgb(220, 53, 69)' },
-  { bg: 'rgba(0, 123, 255, 0.2)', border: 'rgb(0, 123, 255)' },
-  { bg: 'rgba(40, 167, 69, 0.2)', border: 'rgb(40, 167, 69)' },
-  { bg: 'rgba(255, 193, 7, 0.2)', border: 'rgb(255, 193, 7)' },
-  { bg: 'rgba(255, 152, 0, 0.2)', border: 'rgb(255, 152, 0)' },
-  { bg: 'rgba(153, 102, 255, 0.2)', border: 'rgb(153, 102, 255)' },
-  { bg: 'rgba(75, 192, 192, 0.2)', border: 'rgb(75, 192, 192)' },
-  { bg: 'rgba(255, 99, 132, 0.2)', border: 'rgb(255, 99, 132)' },
-];
 
-const PARTIES = [
-  { id: '1', name: 'Partido Rojo', votes: 35 },
-  { id: '2', name: 'Partido Azul', votes: 42 },
-  { id: '3', name: 'Partido Verde', votes: 28 },
-  { id: '4', name: 'Partido Amarillo', votes: 23 },
-  { id: '5', name: 'Partido Naranja', votes: 15 },
-];
+// const PARTIES = [
+//   { id: '1', name: 'Partido Rojo', votes: 35 },
+//   { id: '2', name: 'Partido Azul', votes: 42 },
+//   { id: '3', name: 'Partido Verde', votes: 28 },
+//   { id: '4', name: 'Partido Amarillo', votes: 23 },
+//   { id: '5', name: 'Partido Naranja', votes: 15 },
+// ];
+
+// const initialParties: Party[] = PARTIES.map((party, i) => ({
+//   ...party,
+//   borderColor: PARTY_COLORS[i].border,
+//   color: PARTY_COLORS[i].bg,
+// }))
+
 
 const chartOptions: ChartOptions<'bar'> = {
   responsive: true,
@@ -82,68 +77,18 @@ const chartOptions: ChartOptions<'bar'> = {
 };
 
 
-const initialParties: Party[] = PARTIES.map((party, i) => ({
-  ...party,
-  borderColor: PARTY_COLORS[i].border,
-  color: PARTY_COLORS[i].bg,
-}))
 
 export const HomePage = () => {
 
-  const [parties, setParties] = useState<Party[]>(initialParties);
+  const { status, parties, updatePartyName, updatePartyVotes, addParty, removeParty, chartData } = useParties();
 
-  const updatePartyName = (id: string, newName: string) => {
-    setParties(
-      prev => prev.map(party => party.id === id ? { ...party, name: newName } : party)
-    );
-  }
-
-  const updatePartyVotes = (id: string, value: number) => {
-    setParties(
-      prev => prev.map(party => party.id === id ? { ...party, votes: Math.max(0, party.votes + value) } : party)
-    );
-  }
-
-  const addParty = () => {
-
-    const color = PARTY_COLORS[parties.length % PARTY_COLORS.length];
-
-    const newParty: Party = {
-      id: crypto.randomUUID(),
-      name: `Nuevo Partido ${parties.length + 1}`,
-      votes: 0,
-      borderColor: color.border,
-      color: color.bg,
-    }
-    setParties([...parties, newParty]);
-  }
-
-  const removeParty = (id: string) => {
-    const currentParties = parties.filter(party => party.id !== id);
-    setParties(currentParties);
-  }
-
-
-
-
-  const chartData: ChartData<'bar'> = {
-    labels: parties.map((p) => p.name),
-    datasets: [
-      {
-        data: parties.map((p) => p.votes),
-        backgroundColor: parties.map((p) => p.color),
-        borderColor: parties.map((p) => p.borderColor),
-        borderWidth: 2,
-      },
-    ],
-  };
 
 
   return (
     <div className='chart-container'>
       <h1>Resultados</h1>
 
-      <h3>Conexión: Conectado...</h3>
+      <h3>Conexión: {status}</h3>
 
       <div className='chart-wrapper'>
         <Bar data={chartData} options={chartOptions} />
